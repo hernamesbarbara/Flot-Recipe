@@ -1,6 +1,6 @@
 {
   "name": "flotrecipe",
-  "version": "0.0.1-5",
+  "version": "0.0.1-6",
   "subdomain": "hernamesbarbara",
   "scripts": {
     "start": "app.js"
