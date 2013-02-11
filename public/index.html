@@ -51,11 +51,6 @@
     function bind_events () {
         var socket = io.connect();
         socket.on('plot data', function (d) {
-
-            // Flot needs UTC dates in ms
-            $.each(d, function (i, datum) {
-                datum[0] = moment(datum[0]).utc()._i 
-            })
             draw(d)
         });
 
