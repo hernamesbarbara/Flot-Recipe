@@ -48,7 +48,7 @@
     
     // bind `plot data` event to `draw`
     function bind_events () {
-        var socket = io.connect('http://localhost');
+        var socket = io.connect();
         socket.on('plot data', function (d) {
 
             // Flot needs UTC dates in ms
