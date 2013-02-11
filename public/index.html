@@ -1,0 +1,186 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>Flot Examples: Selection</title>
+        <link href="style.css" rel="stylesheet" type="text/css">
+        <!--[if lte IE 8]>
+            <script language="javascript" type="text/javascript" src="../../excanvas.min.js"></script>
+        <![endif]-->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+        <script>
+            window.jQuery || document.write('<script src="js/jquery-1.8.3.min.js"><\/script>')
+        </script>
+        <script language="javascript" type="text/javascript" src="flot/jquery.flot.js"></script>
+        <script language="javascript" type="text/javascript" src="flot/jquery.flot.selection.js"></script>
+        <script src="moment.js"></script>
+        <script src="http://underscorejs.org/underscore-min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        
+        <script type="text/javascript">
+
+(function (d, b) {
+
+    function scale_grid_week (axes) {
+
+        var ax = axes
+
+        // Flot gives you access to `markings`
+        // which relate to grid layout and style
+          , markings = []
+          // set the start date to last saturday
+          , xmin = moment(ax.xaxis.min).day(-7)
+          , xmax = moment(ax.xaxis.max)
+          , one_week = moment.duration(7, 'days').asMilliseconds()
+          , weekend = moment.duration(2, 'days').asMilliseconds();
+
+        for (i = xmin._i; i < xmax._i; i += one_week) {
+
+          var week = {
+              xaxis: {
+                  from: i ,
+                  to: i + weekend
+              }
+          }
+
+          markings.push(week)
+        }
+        
+        return markings
+
+    }
+    
+    function bind_events () {
+        var socket = io.connect('http://localhost');
+
+        // listen for `plot data` event from server
+        socket.on('plot data', function (d) {
+            var d = d
+
+            // Flot needs dates in UTC format
+            $.each(d, function (i, datum) {
+                datum[0] = moment(datum[0]).utc()._i 
+            })
+            draw(d)
+        });
+
+        function draw (plt) {
+
+            // Flot has lots of cool options
+            var options = {
+                    series: {
+                        lines: { 
+                            show: true, 
+                            fill: true, 
+                            lineWidth: 1, 
+                            steps: false, 
+                            fillColor: { colors: [{opacity: 0.25}, {opacity: 0}] },
+                            hoverable: true
+                        },
+                        points: { 
+                            show: true, 
+                            radius: 2.5, 
+                            fill: true
+                        }
+                },
+                legend: { 
+                    position: "se"
+                },
+                xaxis: {
+                    mode: "time",
+                    tickLength: 5
+                },
+                tooltip: true,
+                tooltipOpts: {
+                    content: '%s: %y'
+                },
+                selection: {
+                    mode: "x"
+                },
+                grid: {
+                    hoverable: true,
+                    borderWidth: 2,
+                    // flot let's you pass a function
+                    // for some attributes
+                    markings: scale_grid_week
+                }
+            };
+
+            // this is what creates the plot
+            // remember the variable plt currently looks like this:
+            // [{label: "some label", data: [[13579609517031, 953], [13579609517031, 953],...]}]
+            var plot = $.plot("#placeholder", plt, options);
+            
+            var overview = $.plot("#overview", plt, {
+                series: {
+                    lines: {
+                        show: true,
+                        lineWidth: 1
+                    },
+                    shadowSize: 0
+                },
+                xaxis: {
+                    ticks: [],
+                    mode: "time"
+                },
+                yaxis: {
+                    ticks: [],
+                    min: 0,
+                    autoscaleMargin: 0.1
+                },
+                selection: {
+                    mode: "x"
+                }
+            });
+
+            // sub plot w/ zoom
+            $("#placeholder").bind("plotselected", function (event, ranges) {
+                
+                plot = $.plot("#placeholder", [plt], $.extend(true, {}, options, {
+                    xaxis: {
+                        min: ranges.xaxis.from,
+                        max: ranges.xaxis.to
+                    }
+                }));
+
+                overview.setSelection(ranges, true);
+            
+            });
+
+            $("#overview").bind("plotselected", function (event, ranges) {
+                plot.setSelection(ranges);
+            });
+        }
+    }
+
+    $(document).ready(function (){
+        // bind `plot data` event
+        // to plot functions
+        bind_events()
+    });
+
+  })(jQuery, this)
+
+        </script>
+
+    </head>
+    
+    <body>
+        <div id="header">
+             <h2>Visitors</h2>
+
+        </div>
+        <div id="content">
+            <div class="demo-container">
+                <div id="placeholder" class="demo-placeholder"></div>
+            </div>
+            <div class="demo-container" style="height:150px;">
+                <div id="overview" class="demo-placeholder"></div>
+            </div>
+
+        </div>
+
+    </body>
+
+</html>
