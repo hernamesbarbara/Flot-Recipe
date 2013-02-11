@@ -1,0 +1,19 @@
+{
+  "name": "hernamesbarbara-flot",
+  "version": "0.0.1-2",
+  "scripts": {
+    "start": "app.js"
+  },
+  "dependencies": {
+    "express": "3.0.0beta6",
+    "underscore": "*",
+    "moment": "*",
+    "moment-range": "*",
+    "socket.io": "*",
+    "connect": "*"
+  },
+  "engines": {
+    "node": "0.8.x"
+  },
+  "subdomain": "hernamesbarbara.flotrecipe"
+}

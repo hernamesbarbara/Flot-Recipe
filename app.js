@@ -11,9 +11,13 @@ app.get('/', function (req, res) {
 });
 
 io.sockets.on('connection', function (socket) {
-    // update the data every 1 1/2 seconds
+    var series = [ { data: Series.create(),
+                     label: "Series " + Series.randint(1,10).toString()} ]
+    // push data immediately
+    socket.emit('plot data', series );
+
+    // push new data every 1.5 sec
     setInterval(function(){
-        
         var series = [ { data: Series.create(),
                          label: "Series " + Series.randint(1,10).toString()} ]
         

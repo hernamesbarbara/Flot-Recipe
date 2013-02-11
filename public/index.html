@@ -25,40 +25,33 @@
     function scale_grid_week (axes) {
 
         var ax = axes
-
-        // Flot gives you access to `markings`
-        // which relate to grid layout and style
+          // shade weekends on grid layout
           , markings = []
-          // set the start date to last saturday
+          // start xaxis on the Saturday 
+          // prior to 1st observation in our data
           , xmin = moment(ax.xaxis.min).day(-7)
           , xmax = moment(ax.xaxis.max)
           , one_week = moment.duration(7, 'days').asMilliseconds()
           , weekend = moment.duration(2, 'days').asMilliseconds();
 
         for (i = xmin._i; i < xmax._i; i += one_week) {
-
           var week = {
               xaxis: {
                   from: i ,
                   to: i + weekend
               }
           }
-
           markings.push(week)
         }
-        
         return markings
-
     }
     
+    // bind `plot data` event to `draw`
     function bind_events () {
         var socket = io.connect('http://localhost');
-
-        // listen for `plot data` event from server
         socket.on('plot data', function (d) {
-            var d = d
 
-            // Flot needs dates in UTC format
+            // Flot needs UTC dates in ms
             $.each(d, function (i, datum) {
                 datum[0] = moment(datum[0]).utc()._i 
             })
@@ -101,65 +94,21 @@
                 grid: {
                     hoverable: true,
                     borderWidth: 2,
-                    // flot let's you pass a function
-                    // for some attributes
+                    // pass function for some opts
                     markings: scale_grid_week
                 }
             };
 
-            // this is what creates the plot
-            // remember the variable plt currently looks like this:
-            // [{label: "some label", data: [[13579609517031, 953], [13579609517031, 953],...]}]
+            // plt looks like this:
+            // [{label: "some label", 
+            //   data: [[13579609517031, 953], [13579609517031, 953],...]}]
             var plot = $.plot("#placeholder", plt, options);
-            
-            var overview = $.plot("#overview", plt, {
-                series: {
-                    lines: {
-                        show: true,
-                        lineWidth: 1
-                    },
-                    shadowSize: 0
-                },
-                xaxis: {
-                    ticks: [],
-                    mode: "time"
-                },
-                yaxis: {
-                    ticks: [],
-                    min: 0,
-                    autoscaleMargin: 0.1
-                },
-                selection: {
-                    mode: "x"
-                }
-            });
-
-            // sub plot w/ zoom
-            $("#placeholder").bind("plotselected", function (event, ranges) {
-                
-                plot = $.plot("#placeholder", [plt], $.extend(true, {}, options, {
-                    xaxis: {
-                        min: ranges.xaxis.from,
-                        max: ranges.xaxis.to
-                    }
-                }));
-
-                overview.setSelection(ranges, true);
-            
-            });
-
-            $("#overview").bind("plotselected", function (event, ranges) {
-                plot.setSelection(ranges);
-            });
         }
     }
 
     $(document).ready(function (){
-        // bind `plot data` event
-        // to plot functions
         bind_events()
     });
-
   })(jQuery, this)
 
         </script>
@@ -175,9 +124,7 @@
             <div class="demo-container">
                 <div id="placeholder" class="demo-placeholder"></div>
             </div>
-            <div class="demo-container" style="height:150px;">
-                <div id="overview" class="demo-placeholder"></div>
-            </div>
+
 
         </div>
 
